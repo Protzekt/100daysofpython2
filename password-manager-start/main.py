@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import choice, randint, shuffle
 import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
 def gen_pass():
@@ -36,6 +37,12 @@ def save_data():
     website = webE.get()
     email = emailE.get()
     password = passE.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
     if len(website) == 0:
         messagebox.showerror(title="Oops", message="The website field has been left empty.")
     elif len(email) == 0:
@@ -43,13 +50,38 @@ def save_data():
     elif len(password) == 0:
         messagebox.showerror(title="Oops", message="The password field has been left empty.")
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"These are the details entered: \nEmail: {email} \nPassword: {password} \n Is it OK to save ?")
-        if is_ok:
-            with open("data.txt", mode="a") as file:
-                file.write(f"{website}|{email}|{password}\n")
-                webE.delete(0, END)
-            # emailE.delete(0, END)
-                passE.delete(0, END)
+        try:
+            with open("data.json", mode="r") as file:
+                # Reading old data
+                data = json.load(file)
+
+        except FileNotFoundError:
+            with open("data.json", "w") as file:
+                json.dump(new_data, file, indent=4)
+        else:
+            # Updating old data with new data
+            data.update(new_data)
+            with open("data.json", "w") as file:
+                # Saving updated data
+                json.dump(data, file, indent=4)
+        finally:
+            webE.delete(0, END)
+            passE.delete(0, END)
+
+def find_password():
+    website = webE.get()
+    try:
+        with open("data.json", mode="r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No data file found.")
+    else:
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPasswrod: {password}")
+        else:
+            messagebox.showinfo(title="Error", meesage=f"No details for {website} exists.")
 
 # ---------------------------- UI SETUP ------------------------------- #
 
@@ -80,13 +112,13 @@ passL = Label(text="Password:", bg="white")
 passL.grid(column=0, row=3)
 
 # Entries
-webE = Entry(bg="white", width=36)
+webE = Entry(bg="white", width=30)
 webE.focus()
 webE.grid(columnspan=2, column=1, row=1)
-emailE = Entry(bg="white", width=36)
+emailE = Entry(bg="white", width=30)
 emailE.grid(columnspan=2, column=1,row=2)
 emailE.insert(0, "kostadiko@gmail.com")
-passE = Entry(bg="white", width=20)
+passE = Entry(bg="white", width=25)
 
 passE.grid(column=1, row=3)
 
@@ -95,8 +127,10 @@ passE.grid(column=1, row=3)
 genB = Button(text="Generate Password", command=gen_pass)
 genB.grid(column=2, row=3)
 
-addB = Button(text="Add", width=36, command=save_data)
+addB = Button(text="Add", width=30, command=save_data)
 addB.grid(columnspan=2, column=1, row=4)
 
+searchB = Button(text="Search",command=find_password)
+searchB.grid(column=2,row=1)
 
 window.mainloop()
