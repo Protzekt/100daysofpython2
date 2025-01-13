@@ -34,6 +34,3 @@ if will_rain:
 
     print(message.status)
 
-
-# my_api = "ebf02d6cebf2aaca2b6cccd5b89da6f6"
-# api = "https://api.openweathermap.org/data/3.0/weather?q=Thessaloniki,GR&appid=ebf02d6cebf2aaca2b6cccd5b89da6f6"
